@@ -1,5 +1,7 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+/// <reference types="multer" />
+import { Controller, Post, Body, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiConsumes } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
@@ -13,8 +15,10 @@ export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @Post('signup')
-    signup(@Body() signupDto: SignupDto) {
-        return this.authService.signup(signupDto);
+    @ApiConsumes('multipart/form-data')
+    @UseInterceptors(FileInterceptor('profileImage'))
+    signup(@Body() signupDto: SignupDto, @UploadedFile() file?: Express.Multer.File) {
+        return this.authService.signup(signupDto, file);
     }
 
     @Post('verify-otp')

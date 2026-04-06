@@ -1,8 +1,10 @@
+/// <reference types="multer" />
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../models/user.schema';
 import { AuthHelperService } from './auth-helper.service';
+import { CloudinaryService } from '../common/cloudinary/cloudinary.service';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -15,12 +17,13 @@ export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly authHelper: AuthHelperService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   // Signup
-  async signup(signupDto: SignupDto): Promise<{ message: string }> {
+  async signup(signupDto: SignupDto, file?: Express.Multer.File): Promise<{ message: string }> {
     try {
-      const { username, email, password, profileImage } = signupDto;
+      const { username, email, password } = signupDto;
 
       const existingUser = await this.userModel.findOne({ email });
       if (existingUser) {
@@ -31,6 +34,12 @@ export class AuthService {
         );
       }
 
+      let profileImage = '';
+      if (file) {
+        const uploadResult = await this.cloudinaryService.uploadImage(file);
+        profileImage = uploadResult.secure_url;
+      }
+
       const hashedPassword = this.authHelper.hashPassword(password);
       const otp = this.authHelper.generateOTP();
       const otpExpiry = this.authHelper.generateOTPExpiry();
@@ -39,7 +48,7 @@ export class AuthService {
         username,
         email,
         password: hashedPassword,
-        profileImage: profileImage || '',
+        profileImage,
         otp,
         otpExpiry,
         isVerified: false,

@@ -18,8 +18,7 @@ export class SignupDto {
   @MinLength(6, { message: 'Password must be at least 6 characters long' })
   password: string;
 
-  @ApiPropertyOptional({ example: 'https://example.com/pic.jpg' })
+  @ApiPropertyOptional({ type: 'string', format: 'binary', description: 'Profile image file' })
   @IsOptional()
-  @IsString({ message: 'Profile image must be a string' })
-  profileImage?: string;
+  profileImage?: any;
 }
