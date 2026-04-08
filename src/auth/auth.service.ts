@@ -11,6 +11,7 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { errorHandler } from '../common/utils/error.utils';
+import { IAuthResponse, IMessageResponse, IUserResponse } from './interfaces/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,7 @@ export class AuthService {
   ) {}
 
   // Signup
-  async signup(signupDto: SignupDto, file?: Express.Multer.File): Promise<{ message: string }> {
+  async signup(signupDto: SignupDto, file?: Express.Multer.File): Promise<IMessageResponse> {
     try {
       const { username, email, password } = signupDto;
 
@@ -64,7 +65,7 @@ export class AuthService {
   }
 
   // Verify OTP (works for both signup verification and forgot password)
-  async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<{ message: string; token?: string; user?: any }> {
+  async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<IAuthResponse> {
     try {
       const { email, otp } = verifyOtpDto;
 
@@ -106,7 +107,7 @@ export class AuthService {
   }
 
   // Signin
-  async signin(signinDto: SigninDto): Promise<{ message: string; token?: string; user?: any }> {
+  async signin(signinDto: SigninDto): Promise<IAuthResponse> {
     try {
       const { email, password } = signinDto;
 
@@ -143,7 +144,7 @@ export class AuthService {
   }
 
   // Forgot Password - Send OTP
-  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<IMessageResponse> {
     try {
       const { email } = forgotPasswordDto;
 
@@ -167,7 +168,7 @@ export class AuthService {
   }
 
   // Resend OTP
-  async resendOtp(forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
+  async resendOtp(forgotPasswordDto: ForgotPasswordDto): Promise<IMessageResponse> {
     try {
       const { email } = forgotPasswordDto;
 
@@ -191,7 +192,7 @@ export class AuthService {
   }
 
   // Reset Password
-  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<IMessageResponse> {
     try {
       const { email, newPassword } = resetPasswordDto;
 
@@ -206,7 +207,8 @@ export class AuthService {
 
       user.password = this.authHelper.hashPassword(newPassword);
       user.isOtpVerified = false;
-      await user.save();
+      const savedUser = await user.save();
+      console.log('Password reset - email:', email, 'hash updated:', savedUser.password !== newPassword);
 
       return { message: 'Password reset successfully' };
     } catch (error) {
@@ -216,7 +218,7 @@ export class AuthService {
   }
 
   // Find user by ID
-  async findById(id: string) {
+  async findById(id: string): Promise<UserDocument | null> {
     return this.userModel.findById(id).select('-password');
   }
 }

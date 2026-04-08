@@ -2,13 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
+import { ITokenPayload } from './interfaces/auth.interface';
+import { UserDocument } from '../models/user.schema';
 
 @Injectable()
 export class AuthHelperService {
     constructor(private readonly configService: ConfigService) {}
 
     // JWT Token Generation
-    generateToken(user: any): string {
+    generateToken(user: UserDocument): string {
         const secret = this.configService.get<string>('JWT_SECRET')!;
         return jwt.sign(
             { id: user._id, email: user.email, roles: user.roles },
@@ -18,9 +20,9 @@ export class AuthHelperService {
     }
 
     // JWT Token Verification
-    verifyToken(token: string): { id: string; roles: string[] } {
+    verifyToken(token: string): ITokenPayload {
         const secret = this.configService.get<string>('JWT_SECRET')!;
-        return jwt.verify(token, secret) as unknown as { id: string; roles: string[] };
+        return jwt.verify(token, secret) as unknown as ITokenPayload;
     }
 
     // Password Hashing
