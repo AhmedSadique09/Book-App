@@ -2,6 +2,7 @@
 import { Controller, Post, Body, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiConsumes } from '@nestjs/swagger';
+import { Public } from '../common/decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
@@ -10,6 +11,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags('Auth')
+@Public()
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
